@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Natsuki Subaru — The Undying Will</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --crimson: #c0192c;
+    --deep-red: #7a0010;
+    --blood: #3d0008;
+    --gold: #d4a843;
+    --pale: #f0e8e0;
+    --shadow: #0a0005;
+    --steel: #8fa3b0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:var(--shadow);
+    color:var(--pale);
+    font-family:'Crimson Pro',serif;
+    min-height:100svh;
+    overflow-x:hidden;
+    cursor:none;
+  }
+
+  /* Cursor */
+  .cursor {
+    position:fixed; width:12px; height:12px;
+    background:var(--crimson); border-radius:50%;
+    pointer-events:none; z-index:9999;
+    transform:translate(-50%,-50%);
+    mix-blend-mode:difference;
+  }
+  .cursor-ring {
+    position:fixed; width:36px; height:36px;
+    border:1px solid rgba(192,25,44,0.6); border-radius:50%;
+    pointer-events:none; z-index:9998;
+    transform:translate(-50%,-50%);
+    transition:left 0.12s ease, top 0.12s ease;
+  }
+
+  /* Slideshow */
+  .slideshow { position:fixed; inset:0; z-index:0; }
+  .slide {
+    position:absolute; inset:0;
+    background-size:cover; background-position:center;
+    opacity:0; transition:opacity 1.6s ease-in-out, transform 8s ease;
+    transform:scale(1.08);
+  }
+  .slide.active { opacity:1; transform:scale(1); }
+  .slide-overlay {
+    position:absolute; inset:0;
+    background:linear-gradient(to bottom,rgba(10,0,5,0.55) 0%,rgba(60,0,8,0.35) 40%,rgba(10,0,5,0.82) 100%);
+  }
+
+  /* Particles */
+  #particles { position:fixed; inset:0; z-index:1; pointer-events:none; }
+  .particle {
+    position:absolute; border-radius:50%;
+    background:var(--crimson);
+    animation:drift linear infinite; opacity:0;
+  }
+  @keyframes drift {
+    0%   { transform:translateY(100vh) scale(0); opacity:0; }
+    10%  { opacity:0.7; }
+    90%  { opacity:0.3; }
+    100% { transform:translateY(-10vh) scale(1.5); opacity:0; }
+  }
+
+  /* Hero */
+  .hero {
+    position:relative; z-index:10;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; padding:2rem;
+    perspective:1200px;
+  }
+  .hero-credit-shell {
+    position:absolute; top:1.6rem; right:1.6rem;
+    z-index:14; opacity:0;
+    animation:creditEnter 1.15s 1.55s cubic-bezier(.18,.84,.32,1) forwards;
+  }
+  .hero-credit {
+    --credit-progress:0;
+    --credit-opacity:1;
+    position:relative;
+    display:flex; flex-direction:column; align-items:flex-end; gap:0.3rem;
+    padding:0.95rem 1.2rem 1.05rem 1.35rem;
+    min-width:min(86vw, 360px);
+    border-radius:22px 22px 8px 22px;
+    border:1px solid rgba(212,168,67,0.35);
+    background:
+      radial-gradient(circle at top left, rgba(212,168,67,0.18), transparent 46%),
+      linear-gradient(135deg, rgba(10,0,5,0.76), rgba(122,0,16,0.36));
+    box-shadow:
+      0 16px 40px rgba(0,0,0,0.35),
+      0 0 32px rgba(192,25,44,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    overflow:hidden; isolation:isolate;
+    transform-origin:top right;
+    transform:
+      translate3d(calc(var(--credit-progress) * 110px), calc(var(--credit-progress) * -84px), 0)
+      scale(calc(1 - var(--credit-progress) * 0.3))
+      rotate(calc(var(--credit-progress) * 10deg));
+    opacity:var(--credit-opacity);
+    filter:
+      blur(calc(var(--credit-progress) * 10px))
+      saturate(calc(1 - var(--credit-progress) * 0.35));
+    transition:transform 0.12s linear, opacity 0.12s linear, filter 0.12s linear;
+  }
+  .hero-credit::before {
+    content:'';
+    position:absolute; inset:-140% auto auto -35%;
+    width:72%; height:300%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.24), transparent);
+    transform:rotate(24deg);
+    animation:creditGlint 4.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .hero-credit::after {
+    content:'';
+    position:absolute; left:1.2rem; right:1.2rem; bottom:0.8rem; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(212,168,67,0.9), transparent);
+    opacity:0.65;
+  }
+  .hero-credit-label {
+    font-family:'Rajdhani',sans-serif;
+    font-size:0.68rem; letter-spacing:0.42em;
+    text-transform:uppercase;
+    color:rgba(240,232,224,0.65);
+  }
+  .hero-credit-name {
+    font-family:'Cinzel Decorative',serif;
+    font-size:clamp(0.85rem,1.55vw,1.1rem);
+    line-height:1.35;
+    text-align:right;
+    background:linear-gradient(135deg, #fff 0%, #f4d685 45%, var(--crimson) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    text-shadow:0 0 22px rgba(212,168,67,0.14);
+  }
+  .music-toggle {
+    position:fixed; top:1.6rem; left:1.6rem;
+    z-index:60;
+    display:inline-flex; align-items:center; gap:0.65rem;
+    padding:0.82rem 1rem;
+    border:1px solid rgba(212,168,67,0.32);
+    border-radius:999px;
+    background:rgba(10,0,5,0.62);
+    color:var(--pale);
+    font-family:'Rajdhani',sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.26em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 14px 32px rgba(0,0,0,0.22);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    transition:transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+  }
+  .music-toggle:hover {
+    transform:translateY(-2px);
+    border-color:rgba(212,168,67,0.55);
+  }
+  .music-toggle.is-playing {
+    background:rgba(122,0,16,0.48);
+    border-color:rgba(212,168,67,0.58);
+  }
+  .music-toggle-dot {
+    width:10px; height:10px; border-radius:50%;
+    background:var(--crimson);
+    box-shadow:0 0 14px rgba(192,25,44,0.7);
+    flex:none;
+  }
+  .hero-inner {
+    transform-style:preserve-3d;
+    transition:transform 0.12s ease-out;
+  }
+  .eyebrow {
+    font-family:'Rajdhani',sans-serif; font-weight:300;
+    font-size:clamp(0.72rem,1.4vw,0.88rem);
+    letter-spacing:0.5em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:1.2rem;
+    opacity:0; animation:fadeUp 1s 0.3s forwards;
+  }
+  .hero-title {
+    font-family:'Cinzel Decorative',serif;
+    font-size:clamp(2.8rem,9vw,7rem);
+    font-weight:900; line-height:0.92;
+    background:linear-gradient(135deg,#fff 0%,var(--gold) 40%,var(--crimson) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 0 40px rgba(192,25,44,0.4));
+    opacity:0; animation:fadeUp 1s 0.6s forwards;
+  }
+  .hero-sub {
+    font-family:'Cinzel Decorative',serif;
+    font-size:clamp(0.9rem,2.2vw,1.5rem); font-weight:700;
+    color:var(--steel); letter-spacing:0.15em; margin-top:0.5rem;
+    opacity:0; animation:fadeUp 1s 0.9s forwards;
+  }
+  .divider {
+    width:120px; height:1px;
+    background:linear-gradient(to right,transparent,var(--gold),transparent);
+    margin:2rem auto;
+    opacity:0; animation:fadeIn 1s 1.2s forwards;
+  }
+  .hero-tagline {
+    font-size:clamp(1rem,1.8vw,1.15rem); font-style:italic;
+    color:rgba(240,232,224,0.7); max-width:460px; line-height:1.85;
+    opacity:0; animation:fadeUp 1s 1.4s forwards;
+  }
+  .scroll-indicator {
+    position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    opacity:0; animation:fadeIn 1s 2.2s forwards;
+  }
+  .scroll-line {
+    width:1px; height:48px;
+    background:linear-gradient(to bottom,var(--gold),transparent);
+    animation:scrollPulse 1.6s ease-in-out infinite;
+  }
+  .scroll-text {
+    font-family:'Rajdhani',sans-serif; font-size:0.65rem;
+    letter-spacing:0.4em; color:var(--gold); opacity:0.6; text-transform:uppercase;
+  }
+  @keyframes scrollPulse {
+    0%,100%{transform:scaleY(1);opacity:1;} 50%{transform:scaleY(0.6);opacity:0.4;}
+  }
+  @keyframes creditEnter {
+    from { opacity:0; transform:translate3d(24px,-20px,0) scale(0.9); }
+    to   { opacity:1; transform:translate3d(0,0,0) scale(1); }
+  }
+  @keyframes creditGlint {
+    0%, 100% { transform:translateX(-140%) rotate(24deg); opacity:0; }
+    18% { opacity:0; }
+    38% { transform:translateX(210%) rotate(24deg); opacity:0.7; }
+    52% { opacity:0; }
+  }
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);}
+  }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+  /* Content */
+  .content { position:relative; z-index:10; max-width:1080px; margin:0 auto; padding:0 2rem 6rem; }
+
+  .section-label {
+    font-family:'Rajdhani',sans-serif; font-size:0.68rem;
+    letter-spacing:0.5em; text-transform:uppercase; color:var(--crimson); margin-bottom:0.5rem;
+  }
+  .section-title {
+    font-family:'Cinzel Decorative',serif; font-size:clamp(1.3rem,3vw,2.2rem); font-weight:700;
+    background:linear-gradient(90deg,#fff,var(--gold));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:2rem;
+  }
+
+  /* Feature row */
+  .feature-row {
+    display:grid; grid-template-columns:1fr 1fr; gap:3.5rem;
+    align-items:center; margin-bottom:5rem;
+  }
+  @media(max-width:660px){.feature-row{grid-template-columns:1fr;gap:2rem;}}
+  .feature-text h3 {
+    font-family:'Cinzel Decorative',serif; font-size:clamp(1.1rem,2.2vw,1.6rem);
+    color:var(--gold); margin-bottom:1.1rem;
+  }
+  .feature-text p {
+    font-size:1rem; line-height:1.95; color:rgba(240,232,224,0.74); font-weight:300; margin-bottom:0.9rem;
+  }
+
+  .stat-box { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  .stat {
+    background:linear-gradient(135deg,rgba(60,0,8,0.5),rgba(10,0,5,0.7));
+    border:1px solid rgba(192,25,44,0.2); padding:1.2rem; text-align:center;
+    transition:transform 0.3s, border-color 0.3s;
+  }
+  .stat:hover { transform:translateY(-4px); border-color:var(--gold); }
+  .stat-num { font-family:'Cinzel Decorative',serif; font-size:2rem; color:var(--crimson); display:block; }
+  .stat-label { font-family:'Rajdhani',sans-serif; font-size:0.68rem; letter-spacing:0.3em; color:var(--steel); text-transform:uppercase; }
+
+  /* Cards */
+  .card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:1.8rem; margin-bottom:5rem; }
+  .card-3d { perspective:800px; }
+  .card {
+    background:linear-gradient(135deg,rgba(60,0,8,0.55),rgba(10,0,5,0.8));
+    border:1px solid rgba(192,25,44,0.22); padding:1.8rem; position:relative; overflow:hidden;
+    transform-style:preserve-3d; transition:transform 0.4s, box-shadow 0.4s, border-color 0.4s; cursor:default;
+  }
+  .card::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(192,25,44,0.07),transparent);
+    opacity:0; transition:opacity 0.4s;
+  }
+  .card:hover { transform:rotateY(-6deg) rotateX(4deg) translateZ(12px); box-shadow:8px 12px 40px rgba(192,25,44,0.28); border-color:rgba(212,168,67,0.4); }
+  .card:hover::before { opacity:1; }
+  .card-num { position:absolute; top:1rem; right:1.3rem; font-family:'Rajdhani',sans-serif; font-size:2.8rem; font-weight:700; color:rgba(192,25,44,0.1); line-height:1; }
+  .card-icon { font-size:1.8rem; margin-bottom:0.8rem; display:block; }
+  .card-head { font-family:'Cinzel Decorative',serif; font-size:0.88rem; color:var(--gold); margin-bottom:0.7rem; }
+  .card p { font-size:0.96rem; line-height:1.9; color:rgba(240,232,224,0.74); font-weight:300; }
+
+  /* Quote */
+  .quote-block {
+    border-left:3px solid var(--crimson); padding:1.5rem 2.5rem;
+    margin:3rem 0; background:rgba(60,0,8,0.3); position:relative; overflow:hidden;
+  }
+  .quote-block::after {
+    content:'"'; position:absolute; right:1.5rem; top:-1rem;
+    font-family:'Cinzel Decorative',serif; font-size:7rem;
+    color:rgba(192,25,44,0.07); line-height:1; pointer-events:none;
+  }
+  .quote-text { font-size:clamp(1.05rem,2vw,1.4rem); font-style:italic; line-height:1.85; color:var(--pale); }
+  .quote-attr { margin-top:0.9rem; font-family:'Rajdhani',sans-serif; font-size:0.75rem; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; }
+
+  /* Hero video spotlight */
+  .hero-media-row {
+    display:grid; grid-template-columns:0.9fr 1.1fr; gap:2rem;
+    align-items:stretch; margin:0 0 5rem;
+  }
+  .hero-media-row .quote-block {
+    margin:0;
+    min-height:100%;
+    display:flex; flex-direction:column; justify-content:center;
+    background:linear-gradient(145deg, rgba(60,0,8,0.46), rgba(10,0,5,0.72));
+    border:1px solid rgba(192,25,44,0.24);
+    border-left:3px solid var(--crimson);
+    box-shadow:0 22px 50px rgba(0,0,0,0.22);
+  }
+  .media-frame {
+    position:relative;
+    min-height:100%;
+    border-radius:28px;
+    overflow:hidden;
+    border:1px solid rgba(212,168,67,0.28);
+    background:rgba(10,0,5,0.78);
+    box-shadow:0 28px 60px rgba(0,0,0,0.36), 0 0 36px rgba(192,25,44,0.14);
+    isolation:isolate;
+  }
+  .media-frame::before {
+    content:'';
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at top right, rgba(212,168,67,0.18), transparent 34%),
+      linear-gradient(180deg, rgba(10,0,5,0.04), rgba(10,0,5,0.48));
+    pointer-events:none;
+    z-index:1;
+  }
+  .media-frame video {
+    display:block;
+    width:100%; height:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    filter:saturate(1.06) contrast(1.04);
+    background:#000;
+  }
+  .media-badge {
+    position:absolute; left:1rem; top:1rem; z-index:2;
+    padding:0.55rem 0.8rem;
+    border-radius:999px;
+    background:rgba(10,0,5,0.56);
+    border:1px solid rgba(212,168,67,0.34);
+    font-family:'Rajdhani',sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.34em;
+    text-transform:uppercase;
+    color:var(--gold);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .media-caption {
+    position:absolute; left:0; right:0; bottom:0; z-index:2;
+    padding:1.5rem 1.5rem 1.3rem;
+    background:linear-gradient(to top, rgba(10,0,5,0.88), transparent);
+  }
+  .media-caption strong {
+    display:block;
+    font-family:'Cinzel Decorative',serif;
+    font-size:clamp(1rem,1.6vw,1.25rem);
+    color:var(--pale);
+    margin-bottom:0.35rem;
+  }
+  .media-caption span {
+    font-family:'Rajdhani',sans-serif;
+    font-size:0.74rem;
+    letter-spacing:0.34em;
+    text-transform:uppercase;
+    color:rgba(240,232,224,0.64);
+  }
+
+  /* Timeline */
+  .timeline { position:relative; padding-left:2.5rem; margin-bottom:5rem; }
+  .timeline::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:1px;
+    background:linear-gradient(to bottom,var(--crimson),transparent);
+  }
+  .tl-item { position:relative; margin-bottom:2.5rem; opacity:0; transform:translateX(-20px); transition:opacity 0.6s, transform 0.6s; }
+  .tl-item.visible { opacity:1; transform:translateX(0); }
+  .tl-dot { position:absolute; left:-2.85rem; top:0.35rem; width:10px; height:10px; border-radius:50%; background:var(--crimson); box-shadow:0 0 12px var(--crimson); }
+  .tl-arc { font-family:'Rajdhani',sans-serif; font-size:0.63rem; letter-spacing:0.35em; color:var(--crimson); text-transform:uppercase; margin-bottom:0.3rem; }
+  .tl-title { font-family:'Cinzel Decorative',serif; font-size:0.95rem; color:var(--gold); margin-bottom:0.4rem; }
+  .tl-desc { font-size:0.96rem; line-height:1.88; color:rgba(240,232,224,0.64); font-weight:300; }
+
+  /* Slide nav */
+  .thumb-nav {
+    position:fixed; right:1.5rem; top:50%; transform:translateY(-50%);
+    z-index:50; display:flex; flex-direction:column; gap:8px;
+  }
+  .thumb-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(240,232,224,0.28); cursor:pointer;
+    transition:background 0.3s, transform 0.3s; border:none; outline:none;
+  }
+  .thumb-dot.active { background:var(--crimson); transform:scale(1.5); box-shadow:0 0 8px var(--crimson); }
+
+  /* Footer */
+  footer {
+    position:relative; z-index:10; text-align:center;
+    padding:3rem 2rem; border-top:1px solid rgba(192,25,44,0.2);
+    background:rgba(10,0,5,0.6);
+  }
+  footer p { font-family:'Rajdhani',sans-serif; font-size:0.72rem; letter-spacing:0.3em; color:rgba(240,232,224,0.28); text-transform:uppercase; }
+  footer strong { color:var(--gold); }
+
+  /* Reveal */
+  .reveal { opacity:0; transform:translateY(38px); transition:opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+  .delay-1{transition-delay:0.1s;} .delay-2{transition-delay:0.22s;} .delay-3{transition-delay:0.36s;}
+
+  @media(max-width:900px){
+    .content { padding:0 1.35rem 5rem; }
+    .feature-row { gap:2rem; margin-bottom:4rem; }
+    .card-grid { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.2rem; margin-bottom:4rem; }
+    .quote-block { padding:1.35rem 1.6rem; margin:2.25rem 0; }
+    .timeline { padding-left:1.7rem; margin-bottom:4rem; }
+    .tl-dot { left:-2.02rem; }
+    .thumb-nav { right:0.85rem; }
+    footer { padding:2.25rem 1.35rem; }
+  }
+
+  @media(max-width:660px){
+    body { cursor:auto; }
+    .hero { min-height:100svh; padding:6rem 1rem 1.75rem; }
+    .music-toggle { top:1rem; left:1rem; padding:0.74rem 0.9rem; letter-spacing:0.2em; }
+    .hero-credit-shell { top:1rem; right:1rem; }
+    .hero-credit {
+      min-width:0;
+      width:min(82vw, 320px);
+      padding:0.85rem 1rem 0.95rem 1.1rem;
+    }
+    .hero-credit-name { font-size:0.84rem; }
+    .hero-inner { max-width:100%; }
+    .eyebrow { letter-spacing:0.3em; margin-bottom:0.95rem; }
+    .hero-sub { letter-spacing:0.1em; }
+    .divider { margin:1.4rem auto; }
+    .hero-tagline { max-width:92vw; line-height:1.7; }
+    .scroll-indicator { bottom:1.25rem; }
+    .content { padding:0 1rem 4rem; }
+    .section-label { letter-spacing:0.28em; font-size:0.63rem; }
+    .section-title { margin-bottom:1.35rem; }
+    .hero-media-row { grid-template-columns:1fr; gap:1.25rem; margin-bottom:4rem; }
+    .hero-media-row .quote-block { padding:1.2rem 1.35rem 1.4rem; }
+    .feature-row { grid-template-columns:1fr; gap:1.35rem; margin-bottom:3.25rem; }
+    .stat-box { gap:0.8rem; }
+    .stat { padding:0.95rem; }
+    .stat-num { font-size:1.6rem; }
+    .card-grid { grid-template-columns:1fr; gap:1rem; margin-bottom:3.4rem; }
+    .card { padding:1.25rem; }
+    .card-num { right:1rem; font-size:2.2rem; }
+    .timeline { padding-left:1.25rem; margin-bottom:3.4rem; }
+    .tl-dot { left:-1.57rem; top:0.28rem; width:8px; height:8px; }
+    .tl-arc { letter-spacing:0.24em; }
+    .tl-desc { line-height:1.7; }
+    .quote-block { padding:1.2rem 1.25rem 1.3rem; margin:2rem 0; }
+    .quote-block::after { right:0.75rem; top:-0.3rem; font-size:4.8rem; }
+    .media-badge { letter-spacing:0.24em; font-size:0.62rem; }
+    .media-caption { padding:1rem; }
+    .media-caption span { letter-spacing:0.24em; }
+    footer p { letter-spacing:0.18em; line-height:1.7; }
+  }
+
+  @media(max-width:480px){
+    .hero { padding-top:6.5rem; }
+    .music-toggle { top:auto; bottom:1rem; left:1rem; right:1rem; justify-content:center; }
+    .hero-credit-shell { left:1rem; right:1rem; }
+    .hero-credit { width:100%; }
+    .hero-credit-label, .scroll-text, .stat-label, .quote-attr, .media-caption span, footer p { letter-spacing:0.18em; }
+    .stat-box { grid-template-columns:1fr; }
+    .thumb-nav { display:none; }
+    .media-frame { border-radius:22px; }
+  }
+
+  @media(hover:none), (pointer:coarse){
+    .cursor, .cursor-ring, .thumb-nav { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<audio id="bgMusic" autoplay loop preload="auto">
+  <source src="Website Background.mp3" type="audio/mpeg"/>
+</audio>
+<button class="music-toggle" id="musicToggle" type="button" aria-label="Play background music">
+  <span class="music-toggle-dot"></span>
+  <span id="musicToggleText">Play Music</span>
+</button>
+
+<!-- Slideshow background -->
+<div class="slideshow" id="slideshow">
+  <div class="slide active" style="background-image:url('Aura.jpg')"><div class="slide-overlay"></div></div>
+  <div class="slide"        style="background-image:url('bye.jpg')"><div class="slide-overlay"></div></div>
+  <div class="slide"        style="background-image:url('jiu.jpg')"><div class="slide-overlay"></div></div>
+  <div class="slide"        style="background-image:url('ko.jpg')"><div class="slide-overlay"></div></div>
+  <div class="slide"        style="background-image:url('lol.jpg')"><div class="slide-overlay"></div></div>
+</div>
+
+<div id="particles"></div>
+<div class="thumb-nav" id="thumbNav"></div>
+
+<!-- HERO -->
+<section class="hero" id="heroSection">
+  <div class="hero-credit-shell">
+    <div class="hero-credit" id="heroCredit">
+      <span class="hero-credit-label">Made By</span>
+      <span class="hero-credit-name">Dharanesh Kumar Gummalla</span>
+    </div>
+  </div>
+  <div class="hero-inner" id="heroInner">
+    <p class="eyebrow">Re:Zero — Starting Life in Another World</p>
+    <h1 class="hero-title">Natsuki<br/>Subaru</h1>
+    <p class="hero-sub">The Undying Will</p>
+    <div class="divider"></div>
+    <p class="hero-tagline">"I'll die again, and again, and again — until I get it right."</p>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <div class="hero-media-row reveal">
+    <div class="quote-block">
+      <p class="quote-text">Even if no one else in the world believes in you — even if you stand completely alone — I will always, always be on your side.</p>
+      <p class="quote-attr">— Subaru to Emilia</p>
+    </div>
+    <div class="media-frame">
+      <span class="media-badge">Memory Fragment</span>
+      <video autoplay muted loop controls playsinline preload="metadata">
+        <source src="Re_Zero.mp4" type="video/mp4"/>
+        Your browser does not support the video tag.
+      </video>
+      <div class="media-caption">
+        <strong>Subaru &amp; Emilia</strong>
+        <span>After the Hero Section</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <p class="section-label">The Beginning</p>
+    <h2 class="section-title">Who Is Natsuki Subaru?</h2>
+  </div>
+
+  <div class="feature-row reveal">
+    <div class="feature-text">
+      <h3>An Ordinary Boy in an Extraordinary World</h3>
+      <p>Natsuki Subaru is a 17-year-old shut-in who is suddenly transported from modern Japan into a vibrant, dangerous fantasy world. Without powers, wealth, or knowledge of where he is, he is utterly powerless by every conventional measure.</p>
+      <p>Yet he carries something rarer: an iron will, boundless empathy, and the most terrifying blessing in existence — the power of <em style="color:var(--crimson)">Return by Death</em>. Every time he dies, the clock resets. And every time, he gets back up.</p>
+    </div>
+    <div class="stat-box">
+      <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Deaths Endured</span></div>
+      <div class="stat"><span class="stat-num">1</span><span class="stat-label">Reason to Live</span></div>
+      <div class="stat"><span class="stat-num">0</span><span class="stat-label">Times He Quit</span></div>
+      <div class="stat"><span class="stat-num">∀</span><span class="stat-label">People He'd Save</span></div>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <p class="section-label">Character</p>
+    <h2 class="section-title">What I Admire Most</h2>
+  </div>
+
+  <div class="card-grid">
+    <div class="card-3d reveal delay-1"><div class="card">
+      <span class="card-num">01</span><span class="card-icon">🔥</span>
+      <p class="card-head">Unyielding Resolve</p>
+      <p>Subaru faces death endlessly and rises each time. He doesn't just endure suffering — he weaponizes it. Every loop is fuel for his determination to reach a future where everyone he loves survives.</p>
+    </div></div>
+    <div class="card-3d reveal delay-2"><div class="card">
+      <span class="card-num">02</span><span class="card-icon">💔</span>
+      <p class="card-head">Authentic Vulnerability</p>
+      <p>Unlike typical protagonists, Subaru breaks. He cries, screams, despairs — and that rawness makes him deeply human. His greatest arc is learning that admitting weakness is not defeat, but the very foundation of real strength.</p>
+    </div></div>
+    <div class="card-3d reveal delay-3"><div class="card">
+      <span class="card-num">03</span><span class="card-icon">🛡</span>
+      <p class="card-head">Selfless Love</p>
+      <p>His love for Emilia, Rem, Beatrice, and all those around him is never transactional. He gives everything — his sanity, his body, his life — not for reward, but because he cannot bear to see those he cherishes suffer.</p>
+    </div></div>
+    <div class="card-3d reveal delay-1"><div class="card">
+      <span class="card-num">04</span><span class="card-icon">🌀</span>
+      <p class="card-head">Courage Under the Curse</p>
+      <p>Imagine knowing you'll die again, knowing the pain is coming — and walking forward anyway. Subaru bears crushing forbidden knowledge alone, unable to tell anyone. Yet he persists, in silence, every single time.</p>
+    </div></div>
+    <div class="card-3d reveal delay-2"><div class="card">
+      <span class="card-num">05</span><span class="card-icon">🌸</span>
+      <p class="card-head">Growth Through Pain</p>
+      <p>From a self-absorbed shut-in to someone who lives entirely for others — Subaru's transformation is one of anime's most compelling arcs. He earns every step of his evolution through blood, grief, and radical self-reflection.</p>
+    </div></div>
+    <div class="card-3d reveal delay-3"><div class="card">
+      <span class="card-num">06</span><span class="card-icon">⚔️</span>
+      <p class="card-head">Tactical Brilliance</p>
+      <p>Without magic or a hero's body, Subaru fights with his mind. He uses knowledge from past loops to outmaneuver enemies and craft impossible victories — making him one of the most unconventional heroes ever written.</p>
+    </div></div>
+  </div>
+
+  <div class="reveal">
+    <p class="section-label">His Journey</p>
+    <h2 class="section-title">Key Story Arcs</h2>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-arc">Arc 1 · Isekai Arrival</p>
+      <h3 class="tl-title">The First Death</h3>
+      <p class="tl-desc">Transported to another world and immediately killed in an alley, Subaru discovers Return by Death — a power that resets time to a checkpoint upon his death. What begins as a gift reveals itself quickly as an incomprehensible curse.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-arc">Arc 2 · Mansion of Witches</p>
+      <h3 class="tl-title">Desperate Loops at Roswaal Manor</h3>
+      <p class="tl-desc">Subaru fights an invisible curse that kills everyone in the mansion over and over. Each loop peels away more of his sanity. He watches allies die, powerless — until he learns to trust others, not just fight alone.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-arc">Arc 3 · Royal Capital</p>
+      <h3 class="tl-title">Pride Before the Fall</h3>
+      <p class="tl-desc">Drunk on determination and arrogance, Subaru publicly demands support for Emilia's royal selection and is utterly humiliated. This arc contains his lowest point and most pivotal breakdown, followed by the legendary Rem confession scene.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-arc">Arc 4 · Great Rabbit &amp; Sanctuary</p>
+      <h3 class="tl-title">Against Impossible Odds</h3>
+      <p class="tl-desc">Facing the Great Rabbit and the Witch of Greed's trials, Subaru is stripped to nothing. What emerges is a warrior who has accepted death as a tool, and life as something worth fighting for with everything he has.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-arc">Arc 5 &amp; Beyond</p>
+      <h3 class="tl-title">The Sin Archbishop Rises</h3>
+      <p class="tl-desc">Bearing the Sin of Pride, Subaru evolves into a strategic mastermind and emotional anchor for all factions. Every death, every scar endured has sharpened him into someone who doesn't just survive — he leads.</p>
+    </div>
+  </div>
+
+  <div class="quote-block reveal">
+    <p class="quote-text">I'm not running away anymore. I'll use every death, every loop, every scar — to reach the future where you're smiling. That's my only goal. That's enough for me.</p>
+    <p class="quote-attr">— Natsuki Subaru</p>
+  </div>
+
+  <div class="reveal" style="text-align:center;padding:3rem 0 1rem;">
+    <p class="section-label" style="text-align:center">Final Word</p>
+    <h2 class="section-title" style="text-align:center">Why Subaru Matters</h2>
+    <p style="max-width:660px;margin:0 auto;font-size:1.05rem;line-height:2;color:rgba(240,232,224,0.7);font-weight:300;">
+      Natsuki Subaru is not a hero because of power. He is a hero because he <em style="color:var(--gold)">chooses</em> to be — every single time, in the face of every horror thrown at him. He is proof that the measure of a person is not what they are given, but what they refuse to give up. In a genre full of chosen ones, Subaru stands apart: a trembling, weeping, relentlessly <em style="color:var(--crimson)">human</em> boy who decided love was worth dying for — infinitely.
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  <p>Made By <strong>Dharanesh</strong> &nbsp;·&nbsp; Tribute to <strong>Natsuki Subaru</strong> &nbsp;·&nbsp; Re:Zero © Tappei Nagatsuki</p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  const bgMusic=document.getElementById('bgMusic');
+  const musicToggle=document.getElementById('musicToggle');
+  const musicToggleText=document.getElementById('musicToggleText');
+  const canHover=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  let mx=0,my=0;
+  if(canHover){
+    document.addEventListener('mousemove', e=>{
+      mx=e.clientX; my=e.clientY;
+      cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+      ring.style.left=mx+'px';   ring.style.top=my+'px';
+    });
+  }
+
+  // Background music: autoplay on load when the browser allows it, then retry on first interaction
+  function setMusicUi(playing){
+    if(!musicToggle || !musicToggleText) return;
+    musicToggle.classList.toggle('is-playing', playing);
+    musicToggleText.textContent=playing ? 'Music On' : 'Play Music';
+    musicToggle.setAttribute('aria-label', playing ? 'Pause background music' : 'Play background music');
+  }
+  function tryPlayMusic(){
+    if(!bgMusic) return Promise.resolve();
+    bgMusic.volume=0.55;
+    bgMusic.muted=false;
+    return bgMusic.play()
+      .then(()=>{ setMusicUi(true); })
+      .catch(()=>{ setMusicUi(false); });
+  }
+  function unlockMusic(){
+    tryPlayMusic().then(()=>{
+      if(bgMusic && !bgMusic.paused){
+        ['pointerdown','keydown','touchstart'].forEach(evt=>document.removeEventListener(evt, unlockMusic));
+      }
+    });
+  }
+  window.addEventListener('load', ()=>{ tryPlayMusic(); }, { once:true });
+  window.addEventListener('pageshow', tryPlayMusic);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState==='visible' && bgMusic && bgMusic.paused) tryPlayMusic();
+  });
+  ['pointerdown','keydown','touchstart'].forEach(evt=>{
+    document.addEventListener(evt, unlockMusic, { passive:true });
+  });
+  bgMusic.addEventListener('play', ()=>setMusicUi(true));
+  bgMusic.addEventListener('pause', ()=>setMusicUi(false));
+  if(musicToggle){
+    musicToggle.addEventListener('click', ()=>{
+      if(!bgMusic) return;
+      if(bgMusic.paused){
+        tryPlayMusic();
+      } else {
+        bgMusic.pause();
+      }
+    });
+  }
+  setMusicUi(false);
+
+  // Particles
+  const pc = document.getElementById('particles');
+  for(let i=0;i<28;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const s=2+Math.random()*5;
+    p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${7+Math.random()*12}s;animation-delay:${Math.random()*10}s;`;
+    pc.appendChild(p);
+  }
+
+  // Slideshow
+  const slides=document.querySelectorAll('.slide');
+  const nav=document.getElementById('thumbNav');
+  let current=0, timer;
+  slides.forEach((_,i)=>{
+    const btn=document.createElement('button'); btn.className='thumb-dot'+(i===0?' active':'');
+    btn.onclick=()=>goTo(i); nav.appendChild(btn);
+  });
+  function goTo(n){
+    slides[current].classList.remove('active'); nav.children[current].classList.remove('active');
+    current=(n+slides.length)%slides.length;
+    slides[current].classList.add('active'); nav.children[current].classList.add('active');
+    clearInterval(timer); timer=setInterval(()=>goTo(current+1),5000);
+  }
+  timer=setInterval(()=>goTo(current+1),5000);
+
+  // Hero 3D tilt on mouse
+  const heroSec=document.getElementById('heroSection');
+  const heroIn =document.getElementById('heroInner');
+  const heroCredit=document.getElementById('heroCredit');
+  if(canHover){
+    heroSec.addEventListener('mousemove',e=>{
+      const r=heroSec.getBoundingClientRect();
+      const dx=(e.clientX-r.left-r.width/2)/(r.width/2);
+      const dy=(e.clientY-r.top -r.height/2)/(r.height/2);
+      heroIn.style.transform=`rotateY(${dx*10}deg) rotateX(${-dy*8}deg)`;
+    });
+    heroSec.addEventListener('mouseleave',()=>{ heroIn.style.transform=''; });
+  }
+
+  // Card 3D tilt
+  if(canHover){
+    document.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('mousemove',e=>{
+        const r=card.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-0.5;
+        const y=(e.clientY-r.top)/r.height-0.5;
+        card.style.transform=`rotateY(${x*14}deg) rotateX(${-y*10}deg) translateZ(12px)`;
+      });
+      card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+    });
+  }
+
+  // Hero credit fades out with a cinematic drift as the page scrolls
+  let creditTicking=false;
+  function updateHeroCredit(){
+    const rect=heroSec.getBoundingClientRect();
+    const progress=Math.min(Math.max(-rect.top/(rect.height*0.72),0),1);
+    const eased=Math.pow(progress,1.35);
+    heroCredit.style.setProperty('--credit-progress', eased.toFixed(3));
+    heroCredit.style.setProperty('--credit-opacity', Math.max(0,1-eased*1.18).toFixed(3));
+    creditTicking=false;
+  }
+  function queueHeroCreditUpdate(){
+    if(creditTicking) return;
+    creditTicking=true;
+    requestAnimationFrame(updateHeroCredit);
+  }
+  window.addEventListener('scroll', queueHeroCreditUpdate, { passive:true });
+  window.addEventListener('resize', queueHeroCreditUpdate);
+  updateHeroCredit();
+
+  // Scroll reveal
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal,.tl-item').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
